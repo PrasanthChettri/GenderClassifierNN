@@ -2,7 +2,7 @@ import torch
 from torch.nn import functional as F
 from sys import argv
 import  model  
-from tnh import train as pr
+from tnh import pad
 
 to_p= argv[1:]
 print (to_p)
@@ -17,11 +17,11 @@ arr = []
 for i in to_p:
     k = [[dicte[ii] for ii in i]]
     print (k)
-    arr.append(pr.pad(k))
+    arr.append(pad(k))
 
-tnn = model.mod()
+tnn = model.mod2()
 tnn.eval()
-tnn.load_state_dict(torch.load("E35,700S.pth"))
+tnn.load_state_dict(torch.load("LATEST.pth"))
 
 with torch.no_grad():
 
@@ -30,4 +30,5 @@ with torch.no_grad():
         output = F.softmax(output , dim = 1)
         male , female = output[0] 
         print ("female : {} % probabilty \nmale : {} % probabilty ".format(male.item() , female.item()))
+
 
