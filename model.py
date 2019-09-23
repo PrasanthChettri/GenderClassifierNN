@@ -26,9 +26,7 @@ class mod(nn.Module):
         x = self.sig(self.c2(x))
         x = self.maxpool2(x)
         x = self.sig(self.c3(x))
-
         x = x.view(-1 ,30 )
-
         x = self.sig(self.l1(x))
         x = self.sig(self.l2(x))
 
@@ -37,26 +35,24 @@ class mod(nn.Module):
 
 class mod2(nn.Module):
 
-#USING LSTM
+#USING BIDIRECTIONAL LSTM
     def __init__(self):
         super().__init__()
 
-        self.lstm = nn.LSTM(53 , 4)
-        self.l1 = nn.Linear(80 , 40)
-        self.l2 = nn.Linear(40 , 10)
-        self.l3  = nn.Linear(10 , 2)
-
+        self.lstm = nn.LSTM(27 , 4 , bidirectional = True)
+        self.l1 = nn.Linear(160 , 80)
+        self.l2 = nn.Linear(80 , 40)
+        self.l3 = nn.Linear(40 , 10)
+        self.l4  = nn.Linear(10 , 2)
         self.act = nn.Sigmoid()
         self.inneract = nn.Tanh()
 
     def forward(self, x):
-
         x = x.view(20 , 1 , 53)
         x , y = self.lstm(x) 
         x = x.view(1 , -1)
-
         x = self.inneract(self.l1(x))
         x = self.inneract(self.l2(x))
-        x = self.l3(x)
-
+        x = self.inneract(self.l3(x))
+        x = self.l4(x)
         return x

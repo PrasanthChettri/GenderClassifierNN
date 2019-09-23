@@ -21,7 +21,7 @@ for i in to_p:
 
 tnn = model.mod2()
 tnn.eval()
-tnn.load_state_dict(torch.load("LATEST.pth"))
+tnn.load_state_dict(torch.load("LATEST6"))
 
 with torch.no_grad():
 
@@ -30,5 +30,3 @@ with torch.no_grad():
         output = F.softmax(output , dim = 1)
         male , female = output[0] 
         print ("female : {} % probabilty \nmale : {} % probabilty ".format(male.item() , female.item()))
-
-
