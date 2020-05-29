@@ -2,31 +2,23 @@ import torch
 from torch.nn import functional as F
 from sys import argv
 import  model  
-from tnh import pad
+from tokenizer import tokenizer
 
-to_p= argv[1:]
-print (to_p)
+def main() : 
+    
+    words = argv[1:]
+    name_len = 20
+    t_obj = tokenizer(name_len)
+    tnn = model.mod2(1 , name_len).cuda()
+    tnn.eval()
+    tnn.load_state_dict(torch.load("weights-8674.pth"))
 
-al =  list(' abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
-dicte = {}
-
-for i , j  in enumerate(al):
-   dicte[j]  = i 
-arr = []
-
-for i in to_p:
-    k = [[dicte[ii] for ii in i]]
-    print (k)
-    arr.append(pad(k))
-
-tnn = model.mod2()
-tnn.eval()
-tnn.load_state_dict(torch.load("LATEST6"))
-
-with torch.no_grad():
-
-    for i in arr:
-        output = tnn.forward(i.unsqueeze(1))
-        output = F.softmax(output , dim = 1)
-        male , female = output[0] 
-        print ("female : {} % probabilty \nmale : {} % probabilty ".format(male.item() , female.item()))
+    with torch.no_grad():
+        for word in words:
+            word = torch.Tensor(t_obj.tkniz(word)).float().cuda()
+            output = tnn.forward(word.unsqueeze(1))
+            output = F.softmax(output , dim = 1)
+            male , female = output[0] 
+            print ("female : {} % probabilty \nmale : {} % probabilty ".format(male.item() , female.item()))
+if __name__ == "__main__" : 
+    main()

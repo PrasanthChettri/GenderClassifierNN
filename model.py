@@ -5,7 +5,6 @@ class mod(nn.Module):
 
     #I hope this model is good
     #Conv2d with one hot encoding does better than Conv1d
-
     def __init__(self):
         super().__init__()
         #input :2d(one hot) : 53*20

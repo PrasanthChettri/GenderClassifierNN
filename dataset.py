@@ -4,51 +4,50 @@ import torch
 import pandas as pd
 
 class Dataset: 
-    def __init__(self, sp , batch_size , name_len):
+    def __init__(self, sp_t ,batch_size , name_len):
         data  = pd.read_csv("gender_refine-csv.csv").dropna()
         self.len_d = len(data)
         self.l = data['gender'].values.tolist()
         self.f = data['name'].values.tolist()
         #split betweeen Training AND validation
-        self.split = int(sp*len(self.l))
         self.t_obj = tokenizer(name_len)
         self.batch = batch_size
+        self.split = int(sp_t*self.len_d)
+        self.load()
 
-        self.ind = list(range(self.len_d))
-        shuffle(self.ind)
+    def load(self):
+        ind = list(range(self.len_d))
+        shuffle(ind)
 
-    def t_get(self):
-        t_ind = self.ind[:self.split]
-        t_ind = iter(t_ind)
-        return self.dat(t_ind)
+        t_ind = ind[:self.split]
+        t_data , self.t_pop = self.dat(iter(t_ind))
 
-    def v_get(self):
-        v_ind = self.ind[self.split:2*self.split]
-        v_ind = iter(v_ind)
-        return self.dat(v_ind) 
+        v_ind = ind[self.split:]
+        v_data , self.v_pop = self.dat(iter(v_ind))
+
+        return t_data , v_data
 
     def dat(self, ind):
-        while ind :
-            fandl = []
-            i = 0
-            while i < self.batch : 
-                try : 
-                    ai = next(ind)
-                except StopIteration :
-                    return
+        all_data = []
+        fandl = []
+        counter = 0 
+        all_counter = 0
+        for ai in ind : 
+            lab = self.l[ai]
+            if lab == 3 :
+                continue 
+            lab = torch.Tensor([round(lab)]).long().cuda()
+            fet = torch.Tensor(self.t_obj.tkniz(self.f[ai])).float().cuda()
+            fandl.append([fet , lab])
+            counter += 1
+            if counter == self.batch :
+                all_data.append(fandl)
+                all_counter += counter
+                fandl = []
+                counter =0 
 
-                # no unisex names
-                lab = self.l[ai]
-                if lab == 3 :
-                    continue 
-
-                lab = torch.Tensor([round(lab)]).long()
-                fet = torch.Tensor(self.t_obj.tkniz(self.f[ai])).float()
-                m = [fet , lab]
-                fandl.append(m)
-                i += 1
-            yield fandl
+        return all_data , all_counter
 
 if __name__ == "__main__":
-    obj = Dataset(0.3)
-    print(next(obj.t_get()))
+    obj = Dataset(0.3 ,1 ,  20)
+    print(obj.load()[0][0])
