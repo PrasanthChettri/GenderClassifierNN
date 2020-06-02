@@ -5,7 +5,8 @@ import pandas as pd
 
 class Dataset: 
     def __init__(self, sp_t ,batch_size , name_len):
-        data  = pd.read_csv("gender_refine-csv.csv").dropna()
+        data  = pd.concat([pd.read_csv("gender_refine-csv.csv").dropna() , 
+                            pd.read_csv("gender_refine-csv2.csv").dropna()]) 
         self.len_d = len(data)
         self.l = data['gender'].values.tolist()
         self.f = data['name'].values.tolist()
@@ -35,7 +36,7 @@ class Dataset:
         for ai in ind : 
             lab = self.l[ai]
             if lab == 3 :
-                continue 
+                lab = 0.5
             lab = torch.Tensor([round(lab)]).long().cuda()
             fet = torch.Tensor(self.t_obj.tkniz(self.f[ai])).float().cuda()
             fandl.append([fet , lab])

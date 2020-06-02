@@ -6,7 +6,7 @@ from dataset import Dataset
 def main():
     #Batch_Size & lenght of a namevector
     batch_size = 1 
-    name_len = 20 
+    name_len = 20
 
     #Loading feautres and labels training and validation
     dset = Dataset(0.8, batch_size, name_len)
