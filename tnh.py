@@ -6,7 +6,8 @@ from dataset import Dataset
 def main():
     #Batch_Size & lenght of a namevector
     batch_size = 1 
-    name_len = 20
+    name_len = 12
+    patience = 3
 
     #Loading feautres and labels training and validation
     dset = Dataset(0.8, batch_size, name_len)
@@ -16,9 +17,11 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     tnn = model.mod2(batch_size , name_len).cuda()
     criterion = nn.CrossEntropyLoss()
-    opt = optim.Adam(tnn.parameters() , lr = 0.001)
+    opt = optim.Adam(tnn.parameters() , lr = 0.00169)
     sof = nn.Softmax(dim = 1)
     old_value = float('inf')
+    counter = 0
+    saved_state = None
 
     print("training on {} :::::".format(device))
     print("training_population {}".format(dset.t_pop))
@@ -55,9 +58,15 @@ def main():
         print()
 
         k += 1
-        if old_value < valid_loss :
-            break
-        old_value = valid_loss 
+        if old_value >  valid_loss : 
+            if counter == 0 : 
+                save_state  = tnn.state_dict()
+            if counter == patience - 1 : 
+                break 
+            counter += 1
+        else :
+            counter = 0
+
     torch.save(tnn.state_dict() , "weights:{}.pth".format(int(old_value)))
 
 if __name__  == '__main__':

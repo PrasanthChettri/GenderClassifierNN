@@ -39,19 +39,17 @@ class mod2(nn.Module):
         self.nl = name_length
 
         self.lstm = nn.LSTM(27 , 4 , bidirectional = True)
-        self.l1 = nn.Linear(160 , 80)
-        self.l2 = nn.Linear(80 , 40)
-        self.l3 = nn.Linear(40 , 10)
-        self.l4  = nn.Linear(10 , 2)
+        self.l1 = nn.Linear(96 , 36)
+        self.l2 = nn.Linear(36 , 10)
+        self.l3 = nn.Linear(10 , 2)
         self.act = nn.Sigmoid()
+        self.drpout = nn.Dropout(0.169)
         self.inneract = nn.Tanh()
 
     def forward(self, x):
         x = x.view(self.nl , self.batch_size , 27)
-        x , y = self.lstm(x) 
+        x , y = self.lstm(x)
         x = x.view(1 , -1)
-        x = self.inneract(self.l1(x))
-        x = self.inneract(self.l2(x))
-        x = self.inneract(self.l3(x))
-        x = self.l4(x)
-        return x
+        x = self.drpout(self.inneract(self.l1(x)))
+        x = self.drpout(self.inneract(self.l2(x)))
+        return self.drpout(self.l3(x))
