@@ -2,53 +2,25 @@ from tokenizer import tokenizer
 from random import shuffle 
 import torch
 import pandas as pd
+import numpy as np
+import torch.utils.data  as data_utils
 
-class Dataset: 
-    def __init__(self, sp_t ,batch_size , name_len):
+def getdata(batch_size , name_len , split ):
+        t_obj = tokenizer(name_len)
         data  = pd.concat([pd.read_csv("gender_refine-csv.csv").dropna() , 
                             pd.read_csv("gender_refine-csv2.csv").dropna()]) 
-        self.len_d = len(data)
-        self.l = data['gender'].values.tolist()
-        self.f = data['name'].values.tolist()
-        #split betweeen Training AND validation
-        self.t_obj = tokenizer(name_len)
-        self.batch = batch_size
-        self.split = int(sp_t*self.len_d)
-        self.load()
+        split = int(len(data)*split) 
+        fet = data['name'].map(lambda x : t_obj.tkniz(x)).values.tolist()
+        label = data['gender'].replace({3 : 0.5})
+        label = np.array(label.map(lambda x : [x , 1-x]).values.tolist()).astype(np.float32)
+        fet = torch.Tensor(fet).cuda()
+        label = torch.from_numpy(label).cuda()
+        train_loader =data_utils.TensorDataset(fet[:split] , label[:split]) 
+        train_dataset = data_utils.DataLoader(dataset = train_loader, batch_size = batch_size, shuffle = True)
+        valid_loader =data_utils.TensorDataset(fet[split:] , label[split:]) 
+        valid_dataset = data_utils.DataLoader(dataset = valid_loader, batch_size = batch_size, shuffle = True)
+        return train_dataset , valid_dataset , len(data)
 
-    def load(self):
-        ind = list(range(self.len_d))
-        shuffle(ind)
-
-        t_ind = ind[:self.split]
-        t_data , self.t_pop = self.dat(iter(t_ind))
-
-        v_ind = ind[self.split:]
-        v_data , self.v_pop = self.dat(iter(v_ind))
-
-        return t_data , v_data
-
-    def dat(self, ind):
-        all_data = []
-        fandl = []
-        counter = 0 
-        all_counter = 0
-        for ai in ind : 
-            lab = self.l[ai]
-            if lab == 3 :
-                lab = 0.5
-            lab = torch.Tensor([round(lab)]).long().cuda()
-            fet = torch.Tensor(self.t_obj.tkniz(self.f[ai])).float().cuda()
-            fandl.append([fet , lab])
-            counter += 1
-            if counter == self.batch :
-                all_data.append(fandl)
-                all_counter += counter
-                fandl = []
-                counter =0 
-
-        return all_data , all_counter
 
 if __name__ == "__main__":
-    obj = Dataset(0.3 ,1 ,  20)
-    print(obj.load()[0][0])
+    getdata(10 , 12 , 0.8)

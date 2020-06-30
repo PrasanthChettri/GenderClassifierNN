@@ -49,7 +49,7 @@ class mod2(nn.Module):
     def forward(self, x):
         x = x.view(self.nl , self.batch_size , 27)
         x , y = self.lstm(x)
-        x = x.view(1 , -1)
+        x = x.view(self.batch_size, 1 , -1)
         x = self.drpout(self.inneract(self.l1(x)))
         x = self.drpout(self.inneract(self.l2(x)))
         return self.drpout(self.l3(x))
