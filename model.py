@@ -36,7 +36,7 @@ class mod2(nn.Module):
     def __init__(self , batch_size , name_length):
         super().__init__()
         self.batch_size = batch_size
-        self.nl = name_length
+        self.max_len = name_length
 
         self.lstm = nn.LSTM(27 , 4 , bidirectional = True)
         self.l1 = nn.Linear(96 , 36)
@@ -47,7 +47,7 @@ class mod2(nn.Module):
         self.inneract = nn.Tanh()
 
     def forward(self, x):
-        x = x.view(self.nl , self.batch_size , 27)
+        x = x.view(self.max_len , self.batch_size , 27)
         x , y = self.lstm(x)
         x = x.view(self.batch_size, 1 , -1)
         x = self.drpout(self.inneract(self.l1(x)))

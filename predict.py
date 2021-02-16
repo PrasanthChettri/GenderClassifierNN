@@ -5,8 +5,18 @@ import  model
 from tokenizer import tokenizer
 
 def main() : 
-    
+    '''
+        Right now just a terminal
+        for acessing the model
+        thinking about making an api 
+        serving this model
+    '''
+
     words = argv[1:]
+
+    '''
+        name_len maximum we support
+    '''
     name_len = 20
     t_obj = tokenizer(name_len)
     tnn = model.mod2(1 , name_len).cuda()
@@ -19,6 +29,8 @@ def main() :
             output = tnn.forward(word.unsqueeze(1))
             output = F.softmax(output , dim = 1)
             male , female = output[0] 
-            print ("female : {} % probabilty \nmale : {} % probabilty ".format(male.item() , female.item()))
+            print("female : {} %".format(female.item()))
+            print("male : {} %".format(male.item()))
+
 if __name__ == "__main__" : 
     main()
