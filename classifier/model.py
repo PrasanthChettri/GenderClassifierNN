@@ -38,8 +38,8 @@ class mod2(nn.Module):
         self.batch_size = batch_size
         self.max_len = name_length
 
-        self.lstm = nn.LSTM(27 , 4 , bidirectional = True)
-        self.l1 = nn.Linear(96 , 36)
+        self.lstm = nn.LSTM(27 , 6 , bidirectional = True)
+        self.l1 = nn.Linear(144 , 36)
         self.l2 = nn.Linear(36 , 10)
         self.l3 = nn.Linear(10 , 2)
         self.act = nn.Sigmoid()
