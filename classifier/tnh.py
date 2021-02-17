@@ -16,7 +16,7 @@ def main():
     #Batch_Size & lenght of a namevector
     batch_size =  27
     name_len = 12
-    split_ratio = 0.8
+    split_ratio = 0.91
     '''
         during inference how many epochs 
         we wait for the model if accuracy is going down
@@ -73,6 +73,7 @@ def main():
             for fet , label in v_getter:
                 if fet.shape[0] != batch_size : break
                 output = tnn.forward(fet)
+                output = F.softmax(output[0] , dim = 1)
                 v_loss = criterion(output.view(batch_size , 2) , label)
                 valid_loss += v_loss.item()
 
