@@ -38,10 +38,9 @@ class mod2(nn.Module):
         self.batch_size = batch_size
         self.max_len = name_length
 
-        self.lstm = nn.LSTM(27 , 6 , bidirectional = True)
-        self.l1 = nn.Linear(144 , 36)
-        self.l2 = nn.Linear(36 , 10)
-        self.l3 = nn.Linear(10 , 2)
+        self.lstm = nn.LSTM(27 , 4 , bidirectional = True)
+        self.l1 = nn.Linear(96, 12)
+        self.l2 = nn.Linear(12 , 2)
         self.act = nn.Sigmoid()
         self.drpout = nn.Dropout(0.169)
         self.inneract = nn.Tanh()
@@ -51,5 +50,4 @@ class mod2(nn.Module):
         x , y = self.lstm(x)
         x = x.view(self.batch_size, 1 , -1)
         x = self.drpout(self.inneract(self.l1(x)))
-        x = self.drpout(self.inneract(self.l2(x)))
-        return self.drpout(self.l3(x))
+        return self.drpout(self.l2(x))

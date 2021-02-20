@@ -15,7 +15,10 @@ NAME_LEN = 12
 def root():
     return {"message": "Hello World"}
 
+
+
 @app.post("/predict") #, response_model = Dict[str, float])
+
 def predict(names : schemas.model_in):
     '''
         name_len maximum we support
@@ -24,7 +27,7 @@ def predict(names : schemas.model_in):
     batch_size = 1  # process One by One
     tnn = model.mod2(batch_size , NAME_LEN)
     tnn.eval()
-    tnn.load_state_dict(torch.load("weights_48.pth", map_location=torch.device('cpu')))
+    tnn.load_state_dict(torch.load("weights\\weights_45.pth", map_location=torch.device('cpu')))
 
     result = {}
 
