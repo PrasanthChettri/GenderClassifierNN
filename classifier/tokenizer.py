@@ -4,7 +4,7 @@ class Tokenizer:
         tokenizer does not take special characters
     '''
     VOCAB = list(' abcdefghijklmnopqrstuvwxyz')
-    LEN_OF_VOCAB = len(VOCAB)
+    VOCAB_SIZE = len(VOCAB)
     def __init__(self , name_len : int):
         '''
             params :
@@ -12,19 +12,19 @@ class Tokenizer:
         '''
 
         self.max_len = name_len
-        self.init_token()
+        self.__init_token()
 
-    def init_token(self)->None :
+    def __init_token(self)->None :
         '''
             init token intialises to 
             the dictionary for the vocab
         '''
         vectors = []
-        for i in range(Tokenizer.LEN_OF_VOCAB):
+        for i in range(Tokenizer.VOCAB_SIZE):
             vectors.append(
-                [0]*i + [1] + [0]*(Tokenizer.LEN_OF_VOCAB-i-1)
+                [0]*i + [1] + [0]*(Tokenizer.VOCAB_SIZE-i-1)
             )
-        self.v_dict = dict(zip(Tokenizer.VOCAB , vectors))
+        self.v_dict = dict( zip(Tokenizer.VOCAB , vectors) )
 
     def tkniz(self , name : str)->List:
         name = name.lower()
@@ -41,7 +41,7 @@ class Tokenizer:
             we snipp it
         '''
         if len_name < self.max_len : 
-            token = [[0] * Tokenizer.LEN_OF_VOCAB] * (self.max_len - len_name)
+            token = [[0] * Tokenizer.VOCAB_SIZE] * (self.max_len - len_name)
         else : 
             name = name[:self.max_len]
             token = []

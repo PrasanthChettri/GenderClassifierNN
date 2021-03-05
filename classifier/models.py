@@ -33,21 +33,41 @@ class mod(nn.Module):
 
 #USING BIDIRECTIONAL LSTM
 class mod2(nn.Module):
-    def __init__(self , batch_size , name_length):
+    def __init__(self , batch_size , name_length , vocab_size):
         super().__init__()
         self.batch_size = batch_size
         self.max_len = name_length
+        self.vocab_size = vocab_size
+        self.hidden_lstm = 2
+        self.p = 0.2 
 
-        self.lstm = nn.LSTM(27 , 4 , bidirectional = True)
-        self.l1 = nn.Linear(96, 12)
-        self.l2 = nn.Linear(12 , 2)
-        self.act = nn.Sigmoid()
-        self.drpout = nn.Dropout(0.169)
-        self.inneract = nn.Tanh()
+        input_size = self.hidden_lstm*2
+
+        #bidirectional LSTM layer
+        self.lstm = nn.LSTM(
+                    self.vocab_size , self.hidden_lstm ,
+                    bidirectional = True, dropout = self.p
+                )
+
+        #dense layer 1 
+        self.l1 = nn.Linear(input_size, 1)
+        self.drpout = nn.Dropout(p = self.p)
 
     def forward(self, x):
-        x = x.view(self.max_len , self.batch_size , 27)
-        x , y = self.lstm(x)
-        x = x.view(self.batch_size, 1 , -1)
-        x = self.drpout(self.inneract(self.l1(x)))
-        return self.drpout(self.l2(x))
+        x = x.view(self.max_len , self.batch_size , self.vocab_size)
+        h2, ( [ h1 ,h2 ], [ c1, c2 ]) = self.lstm(x)
+
+        #h1 = output for LSTM layer 1 (forward)
+        #h2 = output for LSTM layer 2 (reverse)
+
+        x = torch.cat((h1 , h2))
+        h1 = h1.view([1 , * h1.shape])
+        h2 = h2.view([1 , * h2.shape])
+        x = torch.cat((h1 , h2))
+        print(x.shape)
+        x = self.drpout(x)
+        exit()
+        x = x.view(self.bath_size, 1 , -1)
+        x = self.l1(x)
+        exit()
+        return x 

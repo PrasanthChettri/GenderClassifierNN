@@ -5,11 +5,12 @@ from typing import Dict
 import os
 
 
-from classifier import tokenizer , model
+from classifier import tokenizer  , models
 import schemas 
 
 app = FastAPI()
-NAME_LEN = 12
+NAME_LEN = 14
+VOCAB_SIZE = tokenizer.Tokenizer.VOCAB_SIZE
 
 @app.get("/")
 def root():
@@ -25,21 +26,21 @@ def predict(names : schemas.model_in):
     '''
     t_obj = tokenizer.Tokenizer(NAME_LEN)
     batch_size = 1  # process One by One
-    tnn = model.mod2(batch_size , NAME_LEN)
-    tnn.eval()
-    tnn.load_state_dict(torch.load("weights\\weights_45.pth", map_location=torch.device('cpu')))
+    model = models.mod2(batch_size , NAME_LEN , VOCAB_SIZE)
+    model.load_state_dict(torch.load("weights\\weights_532.87.pth"))
+    model.eval()
 
     result = {}
 
     with torch.no_grad():
         for name in names.name:
             name_token = torch.Tensor(t_obj.tkniz(name)).float()
-            output = tnn.forward(name_token.unsqueeze(1))
-            output = F.softmax(output[0] , dim = 1)
+            output = model.forward(name_token)
             '''
                 get the output in the normal dataype form
             '''
-            male , female = map(lambda x : x.item() , output[0])
+            return torch.sigmoid(output).item()
+            return output
             result.update({
                         name : {
                             'male'   : male , 
