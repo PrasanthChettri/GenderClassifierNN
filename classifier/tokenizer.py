@@ -3,7 +3,6 @@ class Tokenizer:
     '''
         tokenizer does not take special characters
     '''
-    VOCAB = list(' abcdefghijklmnopqrstuvwxyz')
     VOCAB_SIZE = len(VOCAB)
     def __init__(self , name_len : int):
         '''
@@ -12,9 +11,9 @@ class Tokenizer:
         '''
 
         self.max_len = name_len
-        self.__init_token()
+        self._init_token()
 
-    def __init_token(self)->None :
+    def _init_token(self)->None :
         '''
             init token intialises to 
             the dictionary for the vocab
@@ -26,7 +25,7 @@ class Tokenizer:
             )
         self.v_dict = dict( zip(Tokenizer.VOCAB , vectors) )
 
-    def tkniz(self , name : str)->List:
+    def tkniz(self , name : str)->List[List[int]]:
         name = name.lower()
         '''
             filter out symbols not in vocab
