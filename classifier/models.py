@@ -1,16 +1,16 @@
 import torch
 from torch import nn
 import config
-import pytorch_lightning as pl
 from typing import List
 from torch.utils.data import DataLoader, TensorDataset
+from pytorch_lightning.core.lightning import LightningModule
 import pandas as pd
 import random
 import numpy as np
  
 
 #USING BIDIRECTIONAL LSTM
-class Model(pl.LightningModule):
+class Model(LightningModule):
     def __init__(self):
         super().__init__()
         self.batch_size = config.BATCH_SIZE
@@ -90,15 +90,25 @@ class Model(pl.LightningModule):
         valid_end = int(split_ratio[1]*len_dset) 
 
         self.train_set = range_list[0 : train_end]
-        self.valid_idx = range_list[train_end : valid_end]
-        self.test_idx =  range_list[valid_end : -1]
+        self.valid_set = range_list[train_end : valid_end]
+        self.test_set =  range_list[valid_end : -1]
         
+
+    def validation_epoch_end(self, outputs):        
+        tensorboard_logs = {'test_loss': 0}
+        return {'avg_val_loss': 0, 'log': tensorboard_logs}
+
+    def test_step(self, batch, batch_idx):
+        return {'test_loss': 0}
+
+    def test_epoch_end(self, outputs):
+        tensorboard_logs = {'test_loss': torch}
+        return {'avg_test_loss': 0, 'log': 0 }
 
     def prepare_data(self):
         data  = pd.concat([pd.read_csv("gender_refine-csv.csv").dropna() , 
                         pd.read_csv("gender_refine-csv2.csv").dropna()],
                         sort = False)
-        train_sample, valid_sample, test_sample = self._get_sample(data)
 
         fet = data['name'].map(lambda x : self.tokenize(x)).values.tolist()
         label = data['gender'].replace({3 : 0.5}).values.tolist()
@@ -108,17 +118,17 @@ class Model(pl.LightningModule):
 
         self.dataset = TensorDataset(fet, label)
 
-        self._get_sample(self)
+        self._get_sample()
 
     def train_dataloader(self):
         return DataLoader(self.dataset, 
-                    sampler = self.train_sample, batch_size = self.batch_size,
+                    sampler = self.train_set, batch_size = self.batch_size,
                     drop_last = True
                 )
 
     def val_dataloader(self):
         return DataLoader(self.dataset, 
-                    sampler = self.valid_sample, batch_size = self.batch_size,
+                    sampler = self.valid_set, batch_size = self.batch_size,
                     drop_last = True
                 )
 
@@ -130,28 +140,35 @@ class Model(pl.LightningModule):
         
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters() , lr = self.lr)
+        optimizer =  torch.optim.Adam(self.parameters() , lr = self.lr)
+        return optimizer
+
 
     def training_step(self, train_batch, batch_idx):
         x , y = train_batch
-        logits = self.forward(x)
+        logits = self.forward(x).flatten()
         loss = self.b_loss(logits, y)
-        self.log('train_loss', loss)
-        return loss
+        self.log('val_loss' , loss)
+        #return {'loss': loss, 'log': logs}
 
     def validation_step(self, val_batch, batch_idx):
         x, y = val_batch
-        logits = self.forward(x)
-        loss = self.loss(logits, y)
-        self.log('val_loss', loss)
+        logits = self.forward(x).flatten()
+        loss = self.b_loss(logits, y)
+        self.log('val_loss' , loss)
+        #return {'val_loss': loss}
 
-    def forward(self, name : str):
-        exit()
+    def forward(self, x):
         opt, ( hn , cn ) = self.lstm(x ,self._init_zeroes())
         x = opt[:, -1, :]
         x = self.fc(x)
         return x 
 
-if __name__ == "__main__":
-    a = Model()
-    a.forward("abcd")
+    def _init_zeroes(self):
+        h0 =  torch.zeros(self.num_layers*2,
+                    self.batch_size, self.hidden_size , device = self.device
+                )
+        c0 =  torch.zeros(self.num_layers*2,
+                    self.batch_size, self.hidden_size , device=  self.device
+                )
+        return (h0 , c0)
