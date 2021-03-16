@@ -1,27 +1,23 @@
+from classifier.models import Model
+import os
+from classifier import  config
 import torch
-from torch.nn import functional as F
-from sys import argv
+from typing import Dict , Union
 
-import model  
-from tokenizer import Tokenizer
+class Classifier : 
+	def __init__(self):
+		self.model = Model(batch_size = 1)
+		model_path = os.path.join('classifier', 'trained' , config.MODEL_NAME)
+		self.model.load_state_dict(torch.load(model_path))
 
-def predict(name : str) : 
-	'''
-		Right now just a terminal
-		for acessing the model
-		thinking about making an api 
-		serving this model
-	'''
-	name_len = 20
-	t_obj = Tokenizer(name_len)
-	tnn = model.Model(1, name_len).cuda()
-	tnn.eval()
-	tnn.load_state_dict(torch.load("weights-8674.pth"))
-	with torch.no_grad():
-		for word in words:
-			word = torch.Tensor(t_obj.tkniz(word)).float().cuda()
-			output = tnn.forward(word.unsqueeze(1))
-			output = F.softmax(output , dim = 1)
-			male , female = output[0] 
-			print("female : {} %".format(female.item()))
-			print("male : {} %".format(male.item()))
+	def predict(self, name : str) -> Dict[str, Union[int ,str]]:
+		word_vector = torch.Tensor(self.model.tokenize(name))
+		logit = self.model.forward(
+					word_vector.view(1 , *word_vector.shape)
+				)
+		probab = torch.sigmoid(logit).item()
+		return {
+			'name': name ,
+			'percentage_female' : 1 - probab,
+			'percentage_male' : probab,
+		}

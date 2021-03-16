@@ -1,19 +1,19 @@
 import torch
 from torch import nn
-import config
+from classifier import config
 from typing import List
 from torch.utils.data import DataLoader, TensorDataset
 from pytorch_lightning.core.lightning import LightningModule
+import pytorch_lightning as pl
 import pandas as pd
 import random
-import numpy as np
  
 
 #USING BIDIRECTIONAL LSTM
 class Model(LightningModule):
-    def __init__(self):
+    def __init__(self , batch_size):
         super().__init__()
-        self.batch_size = config.BATCH_SIZE
+        self.batch_size = batch_size
         self.max_len = config.NAME_LEN
         self.vocab = config.VOCAB
         self.vocab_size = len(self.vocab)
@@ -32,9 +32,12 @@ class Model(LightningModule):
                     num_layers = self.num_layers,
                     batch_first = True
                 )
+
         #dense layer 1 
         self.fc = nn.Linear(self.hidden_size*2 , 1)
         self._init_token()
+        self.val_confusion = pl.metrics.classification\
+                .ConfusionMatrix(num_classes  = 2)
 
     def _init_token(self):
         '''
@@ -48,20 +51,16 @@ class Model(LightningModule):
             )
         self.v_dict = dict( zip(self.vocab , vectors) )
 
-
     def tokenize(self, name):
-        name = name.lower()
-        '''
-            filter out symbols not in vocab
-        '''
+        #filter out symbols not in vocab
         name = list(
-                    filter(lambda word : word in self.vocab , name)
-                )
+                filter(lambda word : word in self.vocab , name.lower())
+            )
         len_name = len(name)
         '''
-            padding the tokens with zero at the front
-            if len_name bigger than len supported 
-            we snipp it
+        padding the tokens with zero at the front
+        if len_name bigger than len supported 
+        we snipp it
         '''
         if len_name < self.max_len : 
             token = [[0] * self.vocab_size] * (self.max_len - len_name)
@@ -71,7 +70,6 @@ class Model(LightningModule):
 
         for alpha in name : 
             token.append(self.v_dict[alpha])
-
         return token
 
     def _get_sample(self):
@@ -82,9 +80,7 @@ class Model(LightningModule):
         '''
         len_dset = len(self.dataset)
         range_list = list(range( len_dset ))
-
         random.shuffle(range_list)
-
         split_ratio = config.SPLIT_RATIO
         train_end = int(split_ratio[0]*len_dset) 
         valid_end = int(split_ratio[1]*len_dset) 
@@ -92,32 +88,38 @@ class Model(LightningModule):
         self.train_set = range_list[0 : train_end]
         self.valid_set = range_list[train_end : valid_end]
         self.test_set =  range_list[valid_end : -1]
-        
-
-    def validation_epoch_end(self, outputs):        
-        tensorboard_logs = {'test_loss': 0}
-        return {'avg_val_loss': 0, 'log': tensorboard_logs}
 
     def test_step(self, batch, batch_idx):
-        return {'test_loss': 0}
+        x, y = batch
+        y_hat = self(x).flatten()
+        loss = self.b_loss(y_hat, y)
+        self.log('test_loss' , loss)
+        probab_pred = torch.sigmoid(y_hat)
+        pred = torch.round(probab_pred).flatten().int()
+        self.val_confusion.update(pred, y.int())
+        return loss
 
     def test_epoch_end(self, outputs):
-        tensorboard_logs = {'test_loss': torch}
-        return {'avg_test_loss': 0, 'log': 0 }
+        metric_val = self.val_confusion.compute().flatten()
+        tn , fp , fn , tp = metric_val
+        total = torch.sum(metric_val)
+        accuracy = (tn + tp)/total
+        return {
+            'accuracy' : accuracy
+        }
+
 
     def prepare_data(self):
-        data  = pd.concat([pd.read_csv("gender_refine-csv.csv").dropna() , 
-                        pd.read_csv("gender_refine-csv2.csv").dropna()],
+        data  = pd.concat([pd.read_csv("classifier/dataset/gender_refine-csv.csv").dropna() , 
+                        pd.read_csv("classifier/dataset/gender_refine-csv2.csv").dropna()],
                         sort = False)
 
         fet = data['name'].map(lambda x : self.tokenize(x)).values.tolist()
         label = data['gender'].replace({3 : 0.5}).values.tolist()
-
-        fet = torch.Tensor(fet).type(dtype=torch.float32).cuda()
-        label = torch.Tensor(label).type(dtype=torch.float32).cuda()
-
-        self.dataset = TensorDataset(fet, label)
-
+        self.dataset = TensorDataset(
+                torch.Tensor(fet).type(dtype=torch.float32) ,
+                torch.Tensor(label).type(dtype=torch.float32)
+            )
         self._get_sample()
 
     def train_dataloader(self):
@@ -134,29 +136,36 @@ class Model(LightningModule):
 
     def test_dataloader(self):
         return DataLoader(self.dataset, 
-                    sampler = self.test_sample, batch_size = self.batch_size,
+                    sampler = self.test_set, batch_size = self.batch_size,
                     drop_last = True
                 )
         
-
     def configure_optimizers(self):
         optimizer =  torch.optim.Adam(self.parameters() , lr = self.lr)
         return optimizer
-
 
     def training_step(self, train_batch, batch_idx):
         x , y = train_batch
         logits = self.forward(x).flatten()
         loss = self.b_loss(logits, y)
-        self.log('val_loss' , loss)
-        #return {'loss': loss, 'log': logs}
-
+        self.log('training_loss' , loss)
+        return loss
+        
     def validation_step(self, val_batch, batch_idx):
         x, y = val_batch
         logits = self.forward(x).flatten()
         loss = self.b_loss(logits, y)
         self.log('val_loss' , loss)
-        #return {'val_loss': loss}
+        return loss
+
+    def training_epoch_end(self, outputs):
+        losses = list( map(lambda loss_dict : loss_dict['loss'] , outputs) )
+        avg_loss = torch.stack(losses).mean()
+        self.log('log' , avg_loss)
+
+    def validation_epoch_end(self, outputs):
+        avg_loss = torch.stack(outputs).mean()
+        self.log('log', avg_loss)
 
     def forward(self, x):
         opt, ( hn , cn ) = self.lstm(x ,self._init_zeroes())

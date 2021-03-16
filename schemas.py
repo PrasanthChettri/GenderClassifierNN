@@ -2,8 +2,8 @@ from pydantic import BaseModel , validator
 from typing import List
 
 class model_in(BaseModel):
-    name : List[str]
-    @validator('name', each_item=True)
+    names : List[str]
+    @validator('names', each_item=True)
     def validate_name(cls , v):
         
         if ' ' in v : 
@@ -18,3 +18,7 @@ class model_in(BaseModel):
             raise ValueError(f"Name should not contain special characters for name {v}")
         else :
             return v
+class prediction(BaseModel):
+    name : str
+    percentage_female : float
+    percentage_male : float

@@ -1,9 +1,16 @@
 import pytorch_lightning as pl
-from models import Model
+from classifier.models import Model
 import torch
-import config
+from classifier import config
+import os
 
 
-model = Model()
-trainer = pl.Trainer(max_epochs = 20)
-trainer.fit(model)
+def main():
+    model = Model(batch_size = config.BATCH_SIZE)
+    trainer = pl.Trainer(max_epochs = 20, default_root_dir = '/classifier' )
+    trainer.fit(model)
+    torch.save(model.state_dict(), os.path.join('classifier', 'trained' , config.MODEL_NAME))
+    trainer.test(model)
+
+if __name__ == "__main__":
+    main()
