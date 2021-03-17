@@ -18,6 +18,6 @@ class Classifier :
 		probab = torch.sigmoid(logit).item()
 		return {
 			'name': name ,
-			'percentage_female' : 1 - probab,
-			'percentage_male' : probab,
+			'percentage_female' : round(1 - probab , 2),
+			'percentage_male' : round(probab , 2),
 		}

@@ -7,9 +7,12 @@ import os
 
 def main():
     model = Model(batch_size = config.BATCH_SIZE)
-    trainer = pl.Trainer(max_epochs = 20, default_root_dir = '/classifier' )
+    trainer = pl.Trainer(max_epochs = 30,
+                gpus = 1, default_root_dir = '/classifier')
     trainer.fit(model)
-    torch.save(model.state_dict(), os.path.join('classifier', 'trained' , config.MODEL_NAME))
+    torch.save(model.state_dict(),
+            os.path.join('classifier', 'trained' , config.MODEL_NAME)
+        )
     trainer.test(model)
 
 if __name__ == "__main__":

@@ -52,16 +52,16 @@ class Model(LightningModule):
         self.v_dict = dict( zip(self.vocab , vectors) )
 
     def tokenize(self, name):
-        #filter out symbols not in vocab
+        """
+        filter out symbols not in vocab
+        padding the tokens with zero at the front
+        if len_name bigger than len supported we snipp it
+        """
         name = list(
                 filter(lambda word : word in self.vocab , name.lower())
             )
         len_name = len(name)
-        '''
-        padding the tokens with zero at the front
-        if len_name bigger than len supported 
-        we snipp it
-        '''
+        
         if len_name < self.max_len : 
             token = [[0] * self.vocab_size] * (self.max_len - len_name)
         else : 
@@ -73,11 +73,11 @@ class Model(LightningModule):
         return token
 
     def _get_sample(self):
-        '''
+        """
                 function returns lists of shuffled ids given of range_len 
                 one for training, valid and test each
                 
-        '''
+        """
         len_dset = len(self.dataset)
         range_list = list(range( len_dset ))
         random.shuffle(range_list)
@@ -161,11 +161,11 @@ class Model(LightningModule):
     def training_epoch_end(self, outputs):
         losses = list( map(lambda loss_dict : loss_dict['loss'] , outputs) )
         avg_loss = torch.stack(losses).mean()
-        self.log('log' , avg_loss)
+        self.log('avg training loss' , avg_loss)
 
     def validation_epoch_end(self, outputs):
         avg_loss = torch.stack(outputs).mean()
-        self.log('log', avg_loss)
+        self.log('avg validation loss', avg_loss)
 
     def forward(self, x):
         opt, ( hn , cn ) = self.lstm(x ,self._init_zeroes())
