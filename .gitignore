@@ -1,4 +1,4 @@
 **/__pycache__/ 
 **/.mypy_cache/
 **/lightning_logs/
-classifier/trained
+classifier/trained/
