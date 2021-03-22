@@ -63,9 +63,10 @@ class Model(LightningModule):
         padding the tokens with zero at the front
         if len_name bigger than len supported, snipp it
         """
+        name = name.split(' ')[0]
         name = list(
-                filter(lambda word : word in self.vocab , name.lower())
-            )
+            filter(lambda word : word in self.vocab , name.lower())
+        )
         len_name = len(name)
         
         if len_name < self.max_len : 
