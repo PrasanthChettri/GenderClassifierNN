@@ -25,10 +25,10 @@
         </div>
         <div id="predictions" class="border container">
             <div class="p-5" id="probab_female">
-                Probabilty/Confidence of female name :
+                Uncertainty//Confidence of female name :
             </div><br>
             <div id="probab_male">
-                Probabilty/Confidence of male name :
+                Uncertainty/Confidence of male name :
             </div>
         </div>
 
@@ -42,8 +42,8 @@
             data : {'name' : $("#name").val()} ,
             dataType: "json",
                 success: function(response) {
-                    let female_return_string = "Probabilty/Confidence of female name : " + response.percentage_female
-                    let male_return_string = "Probabilty/Confidence of male name : " +  response.percentage_male
+                    let female_return_string = "Uncertainty/Confidence of female name : " + response.percentage_female
+                    let male_return_string = "Uncertainty/Confidence of male name : " +  response.percentage_male
                     $("#probab_female").html(female_return_string)
                     $("#probab_male").html(male_return_string)
             },
