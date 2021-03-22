@@ -21,7 +21,7 @@ class prediction_out(BaseModel):
 @app.get("/")
 def root(request : Request):
     """
-    returns a html file
+    returns an html front-end
     """
     return templates.TemplateResponse("index.html" , {'request' : request})
 

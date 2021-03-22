@@ -13,4 +13,4 @@ DROPOUT_PROBABILITY = 0.2 # p(Dropout)
 NUM_OF_LSTM_LAYERS = 2 # number of layers in a stacked LSTM 
 CRITERION = nn.BCEWithLogitsLoss # Loss function
 OPTIMIZER = optim.Adam # Optimizer
-MODEL_NAME = 'ltsm_model.pth' # name for saved the weights after training
+MODEL_NAME = 'lstm_model.pth' # name for saved the weights after training
