@@ -12,6 +12,9 @@ import random
 #USING BIDIRECTIONAL LSTM
 class Model(LightningModule):
     def __init__(self , batch_size):
+        """
+        initialise all the params from the conf file
+        """
         super().__init__()
         self.batch_size = batch_size
         self.max_len = config.NAME_LEN
@@ -40,22 +43,25 @@ class Model(LightningModule):
                 .ConfusionMatrix(num_classes  = 2)
 
     def _init_token(self):
-        '''
-            init token intialises to 
-            the dictionary for the vocab
-        '''
+        """
+        initialises the vocab dictionary 
+        key = alphabet
+        value = one hot encoding 
+        the dictionary for the vocab
+        """
         vectors = []
         for i in range(self.vocab_size):
             vectors.append(
                 [0]*i + [1] + [0]*(self.vocab_size-i-1)
             )
-        self.v_dict = dict( zip(self.vocab , vectors) )
+        self.vocab_dict = dict( zip(self.vocab , vectors) )
 
     def tokenize(self, name):
         """
+        one hot encoding the a name
         filter out symbols not in vocab
         padding the tokens with zero at the front
-        if len_name bigger than len supported we snipp it
+        if len_name bigger than len supported, snipp it
         """
         name = list(
                 filter(lambda word : word in self.vocab , name.lower())
@@ -69,19 +75,19 @@ class Model(LightningModule):
             token = []
 
         for alpha in name : 
-            token.append(self.v_dict[alpha])
+            token.append(self.vocab_dict[alpha])
         return token
 
     def _get_sample(self):
         """
-                function returns lists of shuffled ids given of range_len 
-                one for training, valid and test each
-                
+        function returns lists of sampler of shuffled indices 
+        one for training, valid and test each
         """
         len_dset = len(self.dataset)
         range_list = list(range( len_dset ))
         random.shuffle(range_list)
         split_ratio = config.SPLIT_RATIO
+
         train_end = int(split_ratio[0]*len_dset) 
         valid_end = int(split_ratio[1]*len_dset) 
 
@@ -90,6 +96,9 @@ class Model(LightningModule):
         self.test_set =  range_list[valid_end : -1]
 
     def test_step(self, batch, batch_idx):
+        """
+        test step- compute loss, accuracy 
+        """
         x, y = batch
         y_hat = self(x).flatten()
         loss = self.b_loss(y_hat, y)
@@ -100,6 +109,10 @@ class Model(LightningModule):
         return loss
 
     def test_epoch_end(self, outputs):
+        """
+        computes accuracy -(true negatives + true positive)/total
+        from the confusion matrix 
+        """
         metric_val = self.val_confusion.compute().flatten()
         tn , fp , fn , tp = metric_val
         total = torch.sum(metric_val)
@@ -110,6 +123,7 @@ class Model(LightningModule):
 
 
     def prepare_data(self):
+        """ prepare data from the dataset """
         data  = pd.concat([pd.read_csv("classifier/dataset/gender_refine-csv.csv").dropna() , 
                         pd.read_csv("classifier/dataset/gender_refine-csv2.csv").dropna()],
                         sort = False)
@@ -124,27 +138,23 @@ class Model(LightningModule):
 
     def train_dataloader(self):
         return DataLoader(self.dataset, 
-                    sampler = self.train_set, batch_size = self.batch_size,
-                    drop_last = True
-                )
+                sampler = self.train_set, batch_size = self.batch_size, drop_last = True)
 
     def val_dataloader(self):
         return DataLoader(self.dataset, 
-                    sampler = self.valid_set, batch_size = self.batch_size,
-                    drop_last = True
-                )
+                sampler = self.valid_set, batch_size = self.batch_size, drop_last = True)
 
     def test_dataloader(self):
         return DataLoader(self.dataset, 
-                    sampler = self.test_set, batch_size = self.batch_size,
-                    drop_last = True
-                )
+                sampler = self.test_set, batch_size = self.batch_size, drop_last = True
+            )
         
     def configure_optimizers(self):
         optimizer =  torch.optim.Adam(self.parameters() , lr = self.lr)
         return optimizer
 
     def training_step(self, train_batch, batch_idx):
+        """training step """
         x , y = train_batch
         logits = self.forward(x).flatten()
         loss = self.b_loss(logits, y)
@@ -152,6 +162,7 @@ class Model(LightningModule):
         return loss
         
     def validation_step(self, val_batch, batch_idx):
+        """validation step"""
         x, y = val_batch
         logits = self.forward(x).flatten()
         loss = self.b_loss(logits, y)
@@ -159,25 +170,31 @@ class Model(LightningModule):
         return loss
 
     def training_epoch_end(self, outputs):
+        """compute mean loss for the training epoch"""
         losses = list( map(lambda loss_dict : loss_dict['loss'] , outputs) )
         avg_loss = torch.stack(losses).mean()
         self.log('avg training loss' , avg_loss)
 
     def validation_epoch_end(self, outputs):
+        """compute mean loss for the validation epoch"""
         avg_loss = torch.stack(outputs).mean()
         self.log('avg validation loss', avg_loss)
 
     def forward(self, x):
+        """
+        @param : x - input of dimensions:(batch_size , name_len , vocab_size)
+        run a forward step
+        """
         opt, ( hn , cn ) = self.lstm(x ,self._init_zeroes())
+        #take the last hidden state
         x = opt[:, -1, :]
+        #run through a dense layer 
         x = self.fc(x)
         return x 
 
     def _init_zeroes(self):
         h0 =  torch.zeros(self.num_layers*2,
-                    self.batch_size, self.hidden_size , device = self.device
-                )
+                    self.batch_size, self.hidden_size , device = self.device)
         c0 =  torch.zeros(self.num_layers*2,
-                    self.batch_size, self.hidden_size , device=  self.device
-                )
+                    self.batch_size, self.hidden_size , device=  self.device)
         return (h0 , c0)

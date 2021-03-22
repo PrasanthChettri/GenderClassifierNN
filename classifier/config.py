@@ -1,18 +1,16 @@
-import torch
 from torch import nn , optim
 
-BATCH_SIZE : int =  64
-VOCAB = list(' abcdefghijklmnopqrstuvwxyz')
-VOCAB_SIZE : int = len(VOCAB)
-NAME_LEN  : int = 14
-EPOCHS : int = 1
-SPLIT_RATIO = [0.90, 0.96 , 1]
-CLASSES = ['male' , 'female']
-NUM_CLASSES = len(CLASSES)
-LEARNING_RATE = 0.001
-LSTM_HIDDEN_SIZE = 6
-DROPOUT_PROBABILITY = 0.2
-NUM_OF_LSTM_LAYERS = 2
-CRITERION = nn.BCEWithLogitsLoss
-OPTIMIZER = optim.Adam
-MODEL_NAME = 'ltsm_model.pth'
+BATCH_SIZE : int =  64 #batch_size for training 
+VOCAB = list(' abcdefghijklmnopqrstuvwxyz') #vocab  
+VOCAB_SIZE : int = len(VOCAB) #len of the vocab 
+NAME_LEN  : int = 14 #lenth of input 
+SPLIT_RATIO = [0.90, 0.96 , 1] #elem 0 = training ,elem 1 - elem 0  = valid, 1 - elem 1 = testing
+CLASSES = ['male' , 'female'] #classes for prediction
+NUM_CLASSES = len(CLASSES) # number of classes 
+LEARNING_RATE = 0.001 #learning rate for the optimizer
+LSTM_HIDDEN_SIZE = 6 #size of hidden and cell state 
+DROPOUT_PROBABILITY = 0.2 # p(Dropout) 
+NUM_OF_LSTM_LAYERS = 2 # number of layers in a stacked LSTM 
+CRITERION = nn.BCEWithLogitsLoss # Loss function
+OPTIMIZER = optim.Adam # Optimizer
+MODEL_NAME = 'ltsm_model.pth' # name for saved the weights after training
