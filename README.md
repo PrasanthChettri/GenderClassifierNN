@@ -33,5 +33,5 @@ A GenderClassifier built with python, served using FastAPI
 
 - The names are one hot encoded and fed to the neural net 
 - The model is for now is a bidirectional stacked LSTM followed by a dense layer layer of size one 
-- The output is passed through a sigmoid function, which makes it between [0-1] (Zero begin female, One being male)
+- The output is passed through a sigmoid function, which makes it of value [0-1] (Zero begin female, One being male)
 - The test accuracy of the model currently is roughly **85%**
