@@ -8,17 +8,17 @@ class Classifier :
 	def __init__(self , classifications : int):
 		'''
 		intialises the model 
-		@param : classifications - number of names to predict
+		@param : classifications - number of names to classify
 		'''
 		self.classifications =  classifications
 		self.model = Model(batch_size = classifications)
 		model_path = os.path.join('classifier', 'trained' , config.MODEL_NAME)
 		self.model.load_state_dict(torch.load(model_path))
 
-	def predict(self, names : List[str]) -> List[Dict[str, Union[float ,str]]]:
+	def classify(self, names : List[str]) -> List[Dict[str, Union[float ,str]]]:
 		'''
 		initialises 
-		@param : classifications - the list of names to predict
+		@param : classifications - the list of names to classify
 		@returns : output - the list of classifications 
 		'''
 		assert len(names) == self.classifications, "lenght of the list provided does not match the num of classifications"

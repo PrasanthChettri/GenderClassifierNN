@@ -38,7 +38,7 @@
     $("#submit_name").click(function(){
         $.ajax({
             type: "get",
-            url: "/predict",
+            url: "/classify",
             data : {'name' : $("#name").val()} ,
             dataType: "json",
                 success: function(response) {

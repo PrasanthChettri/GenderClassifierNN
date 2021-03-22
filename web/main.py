@@ -2,7 +2,7 @@ import fastapi
 from fastapi import FastAPI , Request, Query
 from fastapi import templating
 from typing import Dict, List 
-from classifier.predict import Classifier
+from classifier.classify import Classifier
 
 app = FastAPI()
 templates = templating.Jinja2Templates(directory="web/templates")
@@ -26,15 +26,15 @@ def root(request : Request):
     """
     return templates.TemplateResponse("index.html" , {'request' : request})
 
-@app.get("/predict" , response_model= classification_out)
-def predict(
+@app.get("/classify" , response_model= classification_out)
+def classify(
     request : Request, name : str = Query(default = '' , title='Name')
 ):
     """
-    Runs the classifier once to predict a given name
+    Runs the classifier once to classify a given name
     Parameters
     -----------
-    name := single name that has to be predicted 
+    name := single name that has to be classifyed 
 
     Returns
     -----------
@@ -46,19 +46,19 @@ def predict(
     }
     """
     classifier = Classifier(classifications=1)
-    response =  classifier.predict([name])[-1]
+    response =  classifier.classify([name])[-1]
     return response 
 
-@app.post("/bulk_predict", response_model = List[classification_out])
-def bulk_predict(
+@app.post("/bulk_classify", response_model = List[classification_out])
+def bulk_classify(
     names : List[str] = Query(default = [] , title="List of Names")
 ):
     """
-    predict more than one name at a time, runs the classifier to predict more than one name 
+    classify more than one name at a time, runs the classifier to classify more than one name 
 
     Parameters
     -----------
-    - name := list of names that has to be predicted 
+    - name := list of names that has to be classifyed 
 
     Returns
     -----------
@@ -72,5 +72,5 @@ def bulk_predict(
     """
     num_of_names = len(names)
     classifier = Classifier(classifications= num_of_names)
-    response = classifier.predict(names)
+    response = classifier.classify(names)
     return response
