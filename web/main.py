@@ -12,7 +12,7 @@ from pydantic import BaseModel
 #####################
 # PYDANTIC SCHEMA
 #####################
-class prediction_out(BaseModel):
+class classification_out(BaseModel):
     name : str
     percentage_female : float
     percentage_male : float
@@ -26,7 +26,7 @@ def root(request : Request):
     """
     return templates.TemplateResponse("index.html" , {'request' : request})
 
-@app.get("/predict" , response_model= prediction_out)
+@app.get("/predict" , response_model= classification_out)
 def predict(
     request : Request, name : str = Query(default = '' , title='Name')
 ):
@@ -45,11 +45,11 @@ def predict(
         confidence/probabilty of being female
     }
     """
-    classifier = Classifier(predictions=1)
+    classifier = Classifier(classifications=1)
     response =  classifier.predict([name])[-1]
     return response 
 
-@app.post("/bulk_predict", response_model = List[prediction_out])
+@app.post("/bulk_predict", response_model = List[classification_out])
 def bulk_predict(
     names : List[str] = Query(default = [] , title="List of Names")
 ):
@@ -71,6 +71,6 @@ def bulk_predict(
     }
     """
     num_of_names = len(names)
-    classifier = Classifier(predictions= num_of_names)
+    classifier = Classifier(classifications= num_of_names)
     response = classifier.predict(names)
     return response

@@ -5,23 +5,23 @@ import torch
 from typing import Dict , Union , List
 
 class Classifier : 
-	def __init__(self , predictions : int):
+	def __init__(self , classifications : int):
 		'''
 		intialises the model 
-		@param : predictions - number of names to predict
+		@param : classifications - number of names to predict
 		'''
-		self.predictions =  predictions
-		self.model = Model(batch_size = predictions)
+		self.classifications =  classifications
+		self.model = Model(batch_size = classifications)
 		model_path = os.path.join('classifier', 'trained' , config.MODEL_NAME)
 		self.model.load_state_dict(torch.load(model_path))
 
 	def predict(self, names : List[str]) -> List[Dict[str, Union[float ,str]]]:
 		'''
 		initialises 
-		@param : predictions - the list of names to predict
-		@returns : output - the list of predictions 
+		@param : classifications - the list of names to predict
+		@returns : output - the list of classifications 
 		'''
-		assert len(names) == self.predictions, "lenght of the list provided does not match the num of predictions"
+		assert len(names) == self.classifications, "lenght of the list provided does not match the num of classifications"
 		word_vector = list( map(self.model.tokenize, names) ) 
 		logit = self.model.forward(torch.Tensor(word_vector))
 		confidences = torch.sigmoid(logit).flatten().tolist() #returns uncertainty of being male

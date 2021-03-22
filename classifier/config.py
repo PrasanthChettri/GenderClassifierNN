@@ -5,7 +5,7 @@ VOCAB = list(' abcdefghijklmnopqrstuvwxyz') #vocab
 VOCAB_SIZE : int = len(VOCAB) #len of the vocab 
 NAME_LEN  : int = 14 #lenth of input 
 SPLIT_RATIO = [0.90, 0.96 , 1] #elem 0 = training ,elem 1 - elem 0  = valid, 1 - elem 1 = testing
-CLASSES = ['male' , 'female'] #classes for prediction
+CLASSES = ['male' , 'female'] #classes for classification
 NUM_CLASSES = len(CLASSES) # number of classes 
 LEARNING_RATE = 0.001 #learning rate for the optimizer
 LSTM_HIDDEN_SIZE = 6 #size of hidden and cell state 
