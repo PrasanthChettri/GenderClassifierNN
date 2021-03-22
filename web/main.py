@@ -10,12 +10,13 @@ templates = templating.Jinja2Templates(directory="web/templates")
 from pydantic import BaseModel
 
 #####################
-# PYDANTIC SCHEMAS
+# PYDANTIC SCHEMA
 #####################
 class prediction_out(BaseModel):
     name : str
     percentage_female : float
     percentage_male : float
+
 
 
 @app.get("/")
@@ -26,7 +27,9 @@ def root(request : Request):
     return templates.TemplateResponse("index.html" , {'request' : request})
 
 @app.get("/predict" , response_model= prediction_out)
-def predict(request : Request, name : str = Query(default = '' , title='Name')):
+def predict(
+    request : Request, name : str = Query(default = '' , title='Name')
+):
     """
     Runs the classifier once to predict a given name
     Parameters
@@ -42,11 +45,14 @@ def predict(request : Request, name : str = Query(default = '' , title='Name')):
         confidence/probabilty of being female
     }
     """
-    classifier = Classifier()
-    return classifier.predict(name)
+    classifier = Classifier(predictions=1)
+    response =  classifier.predict([name])[-1]
+    return response 
 
 @app.post("/bulk_predict", response_model = List[prediction_out])
-def bulk_predict(names : List[str] = Query(default = [] , title="List of Names")):
+def bulk_predict(
+    names : List[str] = Query(default = [] , title="List of Names")
+):
     """
     predict more than one name at a time, runs the classifier to predict more than one name 
 
@@ -64,10 +70,7 @@ def bulk_predict(names : List[str] = Query(default = [] , title="List of Names")
         confidence/probabilty of being female
     }
     """
-    prediction_list = []
-    classifier = Classifier()
-    for name in names : 
-        prediction_list.append(
-            classifier.predict(name)
-        )
-    return prediction_list
+    num_of_names = len(names)
+    classifier = Classifier(predictions= num_of_names)
+    response = classifier.predict(names)
+    return response
