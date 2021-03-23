@@ -2,3 +2,4 @@
 **/.mypy_cache/
 **/lightning_logs/
 classifier/trained/
+**/.pytest_cache/
