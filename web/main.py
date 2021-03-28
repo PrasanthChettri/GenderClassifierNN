@@ -17,8 +17,6 @@ class classification_out(BaseModel):
     percentage_female : float
     percentage_male : float
 
-
-
 @app.get("/")
 def root(request : Request):
     """
@@ -28,7 +26,7 @@ def root(request : Request):
 
 @app.get("/classify" , response_model= classification_out)
 def classify(
-    request : Request, name : str = Query(default = '' , title='Name')
+    request : Request, name : str = Query(default = '' , title = 'Name')
 ):
     """
     Runs the classifier once to classify a given name
@@ -51,7 +49,7 @@ def classify(
 
 @app.post("/bulk_classify", response_model = List[classification_out])
 def bulk_classify(
-    names : List[str] = Query(default = [] , title="List of Names")
+    names : List[str] = Query(default = [] , title = "List of Names")
 ):
     """
     classify more than one name at a time, runs the classifier to classify more than one name 

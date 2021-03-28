@@ -1,4 +1,5 @@
 --find-links https://download.pytorch.org/whl/torch_stable.html
+
 torch==1.8.0+cpu
 pandas==1.2.2
 fastapi==0.63.0
@@ -7,3 +8,5 @@ typing==3.7.4.3
 pytorch_lightning==1.2.4
 tensorboard==2.4.1
 pytest==6.2.2
+uvloop==0.15.2
+uvicorn==0.13.4

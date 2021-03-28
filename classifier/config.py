@@ -1,6 +1,6 @@
 from torch import nn , optim
 
-EPOCHS : int = 30 # Number of epochs to train on
+EPOCHS : int = 2 # Number of epochs to train on
 BATCH_SIZE : int =  64 #batch_size for training 
 VOCAB = list('abcdefghijklmnopqrstuvwxyz') #vocab  
 VOCAB_SIZE : int = len(VOCAB) #len of the vocab 
