@@ -7,7 +7,7 @@ A GenderClassifier built with python, served using FastAPI
 - Now, we need to train the model, for doing so run ```python3 classifier/train.py```
 - For starting the uvicorn server, run ```uvicorn web.main:app```
 - set path variable for python using ```export PYTHONPATH=$PWD``` (linux)
-- If we go to the localhost:8000, a frontend is present for using the classifier
+- If we go to the localhost:8000, a frontend is present to use the classifier
 
 ![picture alt](img.png)
 
