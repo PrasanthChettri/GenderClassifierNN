@@ -38,9 +38,11 @@ A GenderClassifier built with python, served using FastAPI
 # Model 
 
 - The names are one hot encoded and fed to the neural net 
-- The model is for now is a bidirectional stacked LSTM followed by a dense layer of which the inputs are the last hidden states
+- The model is for now is a bidirectional stacked LSTM followed by a dense layer 
  
-![Operation-of-two-stacked-bidirectional-LSTM-RNN-model](https://user-images.githubusercontent.com/35295049/120662870-1ffa1e00-c4a7-11eb-8247-48e0fc2819f5.png)
-
+   ![Operation-of-two-stacked-bidirectional-LSTM-RNN-model](https://user-images.githubusercontent.com/35295049/120662870-1ffa1e00-c4a7-11eb-8247-48e0fc2819f5.png)
+  
+  
+  here input for the dense layer concat(h<sup>b2</sup><sub>t-1</sub> , h<sup>f2</sup><sub>t+1</sub>)
 - The output is passed through a sigmoid function such that outputs a confidence for male (Zero begin female, One being male)
 - The test accuracy of the model currently is roughly **87%** where accuracy = ``` (tn + tp)/ total ``` for a confusion matrix 
