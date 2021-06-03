@@ -16,19 +16,24 @@ A GenderClassifier built with python, served using FastAPI
   - A basic frontend for typing in names and getting classifications
 - Using REST API 
   - for single name classification ```classify?name=<name>```
-  - for multiple name classification ```bulk_classify?names=<name1>&names=<name2>```
 
-**returns**
-```
+    **returns**
+    ```
     {
       'name' : name being classified 
       'male'   :  Confidence/Uncertainty of being male
       'female' :  Confidence/Uncertainty of being female 
     }
-```
-  st : 
-  
-      male = 1 - female
+    ```
+  - for multiple name classification ```bulk_classify?names=<name1>&names=<name2>```
+    ```
+    [{
+      'name' : name being classified 
+      'male'   :  Confidence/Uncertainty of being male
+      'female' :  Confidence/Uncertainty of being female 
+    }]
+    ```
+
 
 # Model 
 
