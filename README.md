@@ -46,3 +46,8 @@ A GenderClassifier built with python, served using FastAPI
   here input for the dense layer concat(h<sup>b2</sup><sub>t-1</sub> , h<sup>f2</sup><sub>t+1</sub>)
 - The output is passed through a sigmoid function such that outputs a confidence for male (Zero begin female, One being male)
 - The test accuracy of the model currently is roughly **87%** where accuracy = ``` (tn + tp)/ total ``` for a confusion matrix 
+
+TODO :
+* Work on automating best config for training the nn for hardware
+* Try out other approaches with more complex archetecture
+* Host the website
