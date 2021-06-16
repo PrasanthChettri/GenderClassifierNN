@@ -7,7 +7,8 @@ from pytorch_lightning.core.lightning import LightningModule
 import pytorch_lightning as pl
 import pandas as pd
 import random
- 
+
+
 
 #USING BIDIRECTIONAL LSTM
 class Model(LightningModule):
@@ -24,6 +25,7 @@ class Model(LightningModule):
         self.p = config.DROPOUT_PROBABILITY
         self.num_layers = config.NUM_OF_LSTM_LAYERS
         self.lr = config.LEARNING_RATE
+        self.n_workers = config.NUM_WORKERS
 
         self.b_loss = nn.BCEWithLogitsLoss()
         #bidirectional LSTM layer
@@ -36,7 +38,7 @@ class Model(LightningModule):
                     batch_first = True
                 )
 
-        #dense layer 1 
+        #dense layer 1
         self.fc = nn.Linear(self.hidden_size*2 , 1)
         self._init_token()
         self.val_confusion = pl.metrics.classification\
@@ -44,9 +46,9 @@ class Model(LightningModule):
 
     def _init_token(self):
         """
-        initialises the vocab dictionary 
+        initialises the vocab dictionary
         key = alphabet
-        value = one hot encoding 
+        value = one hot encoding
         the dictionary for the vocab
         """
         vectors = []
@@ -68,20 +70,20 @@ class Model(LightningModule):
             filter(lambda word : word in self.vocab , name.lower())
         )
         len_name = len(name)
-        
-        if len_name < self.max_len : 
+
+        if len_name < self.max_len :
             token = [[0] * self.vocab_size] * (self.max_len - len_name)
-        else : 
+        else :
             name = name[:self.max_len]
             token = []
 
-        for alpha in name : 
+        for alpha in name :
             token.append(self.vocab_dict[alpha])
         return token
 
     def _get_sample(self):
         """
-        function returns lists of sampler of shuffled indices 
+        function returns lists of sampler of shuffled indices
         one for training, valid and test each
         """
         len_dset = len(self.dataset)
@@ -89,8 +91,8 @@ class Model(LightningModule):
         random.shuffle(range_list)
         split_ratio = config.SPLIT_RATIO
 
-        train_end = int(split_ratio[0]*len_dset) 
-        valid_end = int(split_ratio[1]*len_dset) 
+        train_end = int(split_ratio[0]*len_dset)
+        valid_end = int(split_ratio[1]*len_dset)
 
         self.train_set = range_list[0 : train_end]
         self.valid_set = range_list[train_end : valid_end]
@@ -98,7 +100,7 @@ class Model(LightningModule):
 
     def test_step(self, batch, batch_idx):
         """
-        test step- compute loss, accuracy 
+        test step- compute loss, accuracy
         """
         x, y = batch
         y_hat = self(x).flatten()
@@ -112,7 +114,7 @@ class Model(LightningModule):
     def test_epoch_end(self, outputs):
         """
         computes accuracy -(true negatives + true positive)/total
-        from the confusion matrix 
+        from the confusion matrix
         """
         metric_val = self.val_confusion.compute().flatten()
         tn , fp , fn , tp = metric_val
@@ -125,7 +127,7 @@ class Model(LightningModule):
 
     def prepare_data(self):
         """ prepare data from the dataset """
-        data  = pd.concat([pd.read_csv("classifier/dataset/gender_refine-csv.csv").dropna() , 
+        data  = pd.concat([pd.read_csv("classifier/dataset/gender_refine-csv.csv").dropna() ,
                         pd.read_csv("classifier/dataset/gender_refine-csv2.csv").dropna()],
                         sort = False)
 
@@ -138,18 +140,24 @@ class Model(LightningModule):
         self._get_sample()
 
     def train_dataloader(self):
-        return DataLoader(self.dataset, 
-                sampler = self.train_set, batch_size = self.batch_size, drop_last = True)
+        return DataLoader(self.dataset,
+                sampler = self.train_set, batch_size = self.batch_size,
+                drop_last = True, num_workers = self.n_workers
+
+              )
 
     def val_dataloader(self):
-        return DataLoader(self.dataset, 
-                sampler = self.valid_set, batch_size = self.batch_size, drop_last = True)
+        return DataLoader(self.dataset,
+                sampler = self.valid_set, batch_size = self.batch_size,
+                drop_last = True , num_workers = self.n_workers
+              )
 
     def test_dataloader(self):
-        return DataLoader(self.dataset, 
-                sampler = self.test_set, batch_size = self.batch_size, drop_last = True
+        return DataLoader(self.dataset,
+                sampler = self.test_set, batch_size = self.batch_size,
+                drop_last = True, num_workers = self.n_workers
             )
-        
+
     def configure_optimizers(self):
         optimizer =  torch.optim.Adam(self.parameters() , lr = self.lr)
         return optimizer
@@ -161,7 +169,7 @@ class Model(LightningModule):
         loss = self.b_loss(logits, y)
         self.log('training_loss' , loss)
         return loss
-        
+
     def validation_step(self, val_batch, batch_idx):
         """validation step"""
         x, y = val_batch
@@ -189,9 +197,9 @@ class Model(LightningModule):
         opt, ( hn , cn ) = self.lstm(x ,self._init_zeroes())
         #take the last hidden state
         x = opt[:, -1, :]
-        #run through a dense layer 
+        #run through a dense layer
         x = self.fc(x)
-        return x 
+        return x
 
     def _init_zeroes(self):
         h0 =  torch.zeros(self.num_layers*2,
